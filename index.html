@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechFlow Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #app {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button onclick="login()">Login</button>
+            <div id="login-error" class="error"></div>
+        </div>
+
+        <div id="admin-dashboard" class="dashboard" style="display:none;">
+            <h2>Admin Dashboard</h2>
+            <button onclick="logout()">Logout</button>
+            <h3>User Management</h3>
+            <div id="user-list"></div>
+            <h3>Add Task</h3>
+            <input type="text" id="admin-task-input" placeholder="Enter task">
+            <button onclick="addTask('admin')">Add Task</button>
+            <h3>Tasks</h3>
+            <div id="admin-task-list"></div>
+        </div>
+
+        <div id="employee-dashboard" class="dashboard" style="display:none;">
+            <h2>Employee Dashboard</h2>
+            <button onclick="logout()">Logout</button>
+            <h3>Your Tasks</h3>
+            <input type="text" id="employee-task-input" placeholder="Enter task">
+            <button onclick="addTask('employee')">Add Task</button>
+            <div id="task-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const users = [
+            { email: 'abhishek@gmail.com', password: 'abhishek123', role: 'admin' },
+            { email: 'student@example.com', password: 'student123', role: 'employee' },
+        ];
+
+        let tasks = [];
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                loadDashboard(user.role);
+            } else {
+                document.getElementById('login-error').textContent = 'Invalid credentials';
+            }
+        }
+
+        function loadDashboard(role) {
+            document.getElementById('login-form').style.display = 'none';
+            
+            if (role === 'admin') {
+                document.getElementById('admin-dashboard').style.display = 'block';
+                loadUserList();
+                loadAdminTasks();
+            } else if (role === 'employee') {
+                document.getElementById('employee-dashboard').style.display = 'block';
+                loadEmployeeTasks();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            window.location.reload();
+        }
+
+        function loadUserList() {
+            const userListDiv = document.getElementById('user-list');
+            userListDiv.innerHTML = users.map(u => `<div>${u.email} (${u.role})</div>`).join('');
+        }
+
+        function loadAdminTasks() {
+            const adminTaskListDiv = document.getElementById('admin-task-list');
+            adminTaskListDiv.innerHTML = tasks.map(task => `<div>${task}</div>`).join('');
+        }
+
+        function loadEmployeeTasks() {
+            const taskListDiv = document.getElementById('task-list');
+            taskListDiv.innerHTML = tasks.map(task => `<div>${task}</div>`).join('');
+        }
+
+        function addTask(role) {
+            const taskInput = role === 'admin' ? document.getElementById('admin-task-input') : document.getElementById('employee-task-input');
+            const task = taskInput.value.trim();
+            
+            if (task) {
+                tasks.push(task);
+                taskInput.value = '';
+                if (role === 'admin') {
+                    loadAdminTasks();
+                } else {
+                    loadEmployeeTasks();
+                }
+            }
+        }
+
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('loggedInUser'));
+            if (user) {
+                loadDashboard(user.role);
+            }
+        };
+    </script>
+</body>
+</html>
